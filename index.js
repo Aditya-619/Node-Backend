@@ -1,13 +1,33 @@
-const lib = require('./lib.js')
-// import { sum, diff} from './lib.js'
-// import { readFileSync } from 'node:fs'
+import http from 'http'
+import { readFileSync } from 'fs'
 
-const fs = require('fs');
-// const txt = fs.readFileSync('demo.txt', 'utf-8')
+const index = readFileSync('data.json', 'utf-8')
+const data = readFileSync('info.txt', 'utf-8');
 
-fs.readFile('demo.txt', 'utf-8', (err, txt)=>{
-    console.log(txt);
+
+const server = http.createServer((req, res)=>{
+    console.log(req.url)  // when working with HTTP requests, the req.url property is part of the request object and represents the URL of the incoming request. It includes the path, query parameters, and any other relevant information.
+    console.log("server started")
+    // res.setHeader('Content-Type', 'text/html')
+    // res.end("<h1>Aditya Hero</h2>")
+
+    // res.setHeader('Content-Type', 'application/json')
+    // res.end(index)
+
+    // Routing
+    switch(req.url) {
+        case '/': 
+            res.setHeader('Content-Type', 'application/json')
+            res.end(index);
+            break;
+        case '/info':
+            res.setHeader('Content-Type', 'text/html');
+            res.end(data);
+            break;
+        default:
+            res.writeHead(404);
+            res.end();
+    }
 })
 
-console.log(lib.sum(6, 9))
-console.log(lib.diff(10, 9))
+server.listen(8080)
