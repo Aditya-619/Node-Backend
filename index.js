@@ -1,85 +1,79 @@
 
 import fs from 'fs'
-import express from 'express'
+import express, { json } from 'express'
 
 const index = fs.readFileSync('data.json', 'utf-8')
 
+const data = JSON.parse(fs.readFileSync('data.json', 'utf-8'))
+const products = data.products 
+
 const server = express()
 
-// server.get('/', (req, res)=>{
+// body parser
+server.use(express.json())
 
-       // some request methods
-
-//     res.send('<h1>Aditya !</h1>')
-//     res.sendFile('/home/aditya/Desktop/node-app/data.json')
-// })
+// API root or Base URL = google.com/.api/v2/...
+// we add => (/something) after the base url
+// Like in below case we add /products after localhost:8080 that is localhost:8080/products
 
 
-// Middleware
-server.use((req, res, next)=>{
-    console.log(req.method, req.ip, req.hostname, new Date(), req.get('User-Agent'))
-    next()
+// Create - add new data in api
+// done with POST method
+server.post('/products', (req, res)=>{
+    // console.log(req.body)
+    products.push(req.body)
+    res.json(req.body)
+})
+// Above create api method will lost all the data if server restarts
+// this is beacuse the newly created data is not saved in any database
+
+
+
+// Read 
+// done with GET method
+server.get('/products', (req, res)=>{ 
+    res.json(products)
 })
 
+// Read
+server.get('/products/:id', (req, res)=>{
+    // console.log(req.params)
+    const id = +req.params.id
+    const product = products.find(p=>p.id===id)
+    res.json(product)
+})
+ 
 
-// Middleware for particular routes
-// const auth = (req, res, next)=>{
-//     console.log(req.query)
-//     if(req.query.password == '123') {
-//         next()
-//     } else {
-//         res.sendStatus(401);
-//     }
-// }
+// Update 
 
-// const auth = (req, res, next)=>{
-//     console.log(req.query)
-//     if(req.body.password == '123') {
-//         next()
-//     } else {
-//         res.sendStatus(401);
-//     }
-// }
-
-// bodyParser
-// Built-in Middleware
-// server.use(express.json())
-
-const checkPoint = (req, res, next)=>{
-    if(req.query.name == 'Aditya') {
-        next()
-    } else {
-        res.sendStatus(401)
-    }
-}
-
-// Endpoints
-server.get('/', (req, res)=>{
-    res.json({type:"GET"})
+// done with PUT method and PATCH method
+// PUT - In PUT method changes are overidden on previous state of data
+// PATCH - In PATCH method changes are only udated/modified to specified request 
+server.put('/products/:id', (req, res)=>{
+    const id = +req.params.id
+    const productIndex = products.findIndex(p=>p.id === id) 
+    products.splice(productIndex, 1, {...req.body, id:id})
+    res.status(201).json()
 })
 
-server.get('/product/:id', (req, res)=>{
-    console.log(req.params)
-    res.send('This is product')
+server.patch('/products/:id', (req, res)=>{
+    const id = +req.params.id
+    const productIndex = products.findIndex(p=>p.id === id) 
+    const product = products[productIndex]
+    products.splice(productIndex, 1, {...product, ...req.body})
+    res.status(201).json()
 })
 
-server.get('/demo', checkPoint, (req, res)=>{
-    // res.json(req.query)
-    res.sendFile('/home/aditya/Desktop/node-app/demo.json')
+// Delete
+// done with DELETE method
+server.delete('/products/:id', (req, res)=>{
+    const id = +req.params.id
+    const productIndex = products.findIndex(p=>p.id === id) 
+    const product = products[productIndex]
+    products.splice(productIndex, 1)
+    res.status(201).json()
 })
 
-
-// server.post('/', auth,  (req, res)=>{
-//     res.json({type:"POST"})
-// })
-
-// server.put('/', (req, res)=>{
-//     res.json({type:"PUT"})
-// })
-
-// server.delete('/', auth, (req, res)=>{
-//     res.json({type:"DELETE"})
-// })
 
 server.listen(8080, ()=>{
     console.log("server running")
